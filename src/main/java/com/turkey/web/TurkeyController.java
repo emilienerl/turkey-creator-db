@@ -1,69 +1,79 @@
 package com.turkey.web;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import com.turkey.business.Turkey;
+import com.turkey.db.TurkeyRepo;
 
-
+@CrossOrigin
 @RestController
-@RequestMapping("/turkey")
+@RequestMapping("/turkeys")
 public class TurkeyController {
 	
-	private List<Turkey> turkeys = new ArrayList<>();
+	/*
+	 * A controller will implement 5 CRUD methods:
+	 * 1) GET ALL
+	 * 2) GET BY ID
+	 * 3) POST - Insert / Create
+	 * 4) PUT - Update
+	 * 5) DELETE - Delete
+	 */
 	
-		//gets all data ; select * - no filter
-		@GetMapping("/") 
-		public List<Turkey> getTurkeys() {
-			return turkeys;
-		}
-		
-		// get a single turkey by id (select *  by id)
-		@GetMapping("/{id}") 
-		public Turkey getTurkey(@PathVariable int id) {
-			Turkey t = null;
-			for (Turkey turkey: turkeys) {
-				if (turkey.getId() == id) {
-					t = turkey;
-				}
-			}
-			return t;
-			
-		}
-
-		
-		//when we accept params we don't need a forward slash /
-		@PostMapping("") 
-		public Turkey createTurkey(@RequestParam int id, @RequestParam String name, @RequestParam double weight) {
-			Turkey t = new Turkey(id, name, weight); //creating an instance of a turkey
-			turkeys.add(t);
-			return t;
-			
-		}
-		// delete a turkey by ID (delete where id=?)
-		@DeleteMapping("/{id}") 
-		public Turkey deleteTurkey(@PathVariable int id) {
-			Turkey t = null;
-			for (Turkey turkey: turkeys) {
-				if (turkey.getId() == id) {
-					t = turkey;
-					turkeys.remove(t);
-				}
-			}
-			return t;
-			
-		}
-		
-		}
-
+	@Autowired
+	private TurkeyRepo turkeyRepo; 
+	//instance variable for MovieRepo. Defined at the class level.
+	//movieRepo is an instance variable of the MovieController class
+	
+	
+	//get all movies
+	
+	@GetMapping("/")
+	public List<Turkey> getAll() {
+		return turkeyRepo.findAll();
+	}
+	
+	
+	//get movie by id
+	
+	@GetMapping("/{id}")
+	public Optional<Turkey> getById(@PathVariable int id) {
+		return turkeyRepo.findById(id);
+	}
 	
 
-
+	// add a movie
+	//pass instance of movie in and use JPA to add it to the database
+	
+	@PostMapping("/")
+	public  Turkey addMovie(@RequestBody Turkey t) {
+		t = turkeyRepo.save(t);
+		return t;
+	}
+	
+	
+	//update a movie
+	
+	@PutMapping("/")
+	public Turkey updateTurkey(@RequestBody Turkey t) {
+		t = turkeyRepo.save(t);
+		return t;
+	}
+	
+	//delete a movie
+	
+	@DeleteMapping("/{id}")
+	public Turkey deleteMovie(@PathVariable int id) {
+		Optional<Turkey> t = turkeyRepo.findById(id);
+		if (t.isPresent()) {
+			turkeyRepo.deleteById(id);
+		} else {
+			System.out.println("Error - turkey not found for id " + id);
+		}
+		return t.get();
+	}
+	
+}
